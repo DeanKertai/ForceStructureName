@@ -64,9 +64,7 @@ namespace ForceStructureName
 
 				// Check for valid selection
 				if (res.Status != PromptStatus.OK || res.ObjectId == ObjectId.Null)
-				{
 					return;
-				}
 
 				// Prompt user for a new name
 				PromptStringOptions pso = new PromptStringOptions("\nEnter a new name");
@@ -78,7 +76,6 @@ namespace ForceStructureName
 				}
 
 				string newName = nameResult.StringResult;
-
 
 				using (Transaction tr = db.TransactionManager.StartTransaction())
 				{
@@ -111,27 +108,26 @@ namespace ForceStructureName
 						// Interate through structure list to check for conflicts
 						foreach (Structure checkStructure in structures)
 						{
-							// Check for conflicts
-								if (checkStructure.Name.Equals(newName))
+							if (checkStructure.Name.Equals(newName))
+							{
+								// Find a new name for the other structure using a counter
+								// For example: "S10 (2)"
+								int counter = 2;
+								string replacementName = String.Format("{0} ({1})", checkStructure.Name, counter);
+								while (nameExists(replacementName, structures))
 								{
-									// Find a new name for the other structure using a counter
-									// For example: "S10 (2)"
-									int counter = 2;
-									string replacementName = String.Format("{0} ({1})", checkStructure.Name, counter);
-									while (nameExists(replacementName, structures))
-									{
-										counter++;
-										replacementName = String.Format("{0} ({1})", checkStructure.Name, counter);
-									}
-
-									// Update other structure's name and exit
-									ed.WriteMessage(
-										String.Format(
-											"Structure {0} already exists, changing name to {1}",
-											checkStructure.Name, replacementName));
-									checkStructure.Name = replacementName;
-									break;
+									counter++;
+									replacementName = String.Format("{0} ({1})", checkStructure.Name, counter);
 								}
+
+								// Update other structure's name and exit
+								ed.WriteMessage(
+									String.Format(
+										"Structure {0} already exists, changing name to {1}",
+										checkStructure.Name, replacementName));
+								checkStructure.Name = replacementName;
+								break;
+							}
 						}
 
 						// Update the structure name and exit
